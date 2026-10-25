@@ -1,0 +1,137 @@
+[README.md](https://github.com/user-attachments/files/33921467/README.md)
+# Selene — Kaam bhi, Bharosa bhi
+
+Selene is a mobile-first, hyperlocal on-demand services prototype for India's blue-collar service economy. It helps customers find nearby plumbers, electricians, cleaners, maids, cooks, painters and other local professionals, while giving workers control over their rates, availability and work pipeline.
+
+> **Hackathon prototype note:** OTP delivery, ID verification, background checks and SOS dispatch are deliberately mocked and labelled in the product. Maps use real OpenStreetMap tiles; location defaults to Mumbai when browser geolocation is unavailable.
+
+## Problem
+
+Customers often rely on informal referrals for urgent home services and have limited visibility into availability, pricing or quality. Local workers face inconsistent demand and little control over how they present their skills. Selene makes the local service market more transparent: workers set rates, customers negotiate, and both sides build trust through verification, ratings and safety tools.
+
+## What works in this prototype
+
+### Phase 1 — complete core flow
+
+- Mock phone + OTP authentication with customer and worker roles.
+- Worker profile with skills, rates, radius, availability and demo voice onboarding.
+- Customer request flow: category, issue, now/schedule, location and budget.
+- Fair-price range and live Fair / High / Low price indicator.
+- Haversine distance matching, worker ranking, ETA and 30-minute highlighting.
+- Leaflet + OpenStreetMap live map with customer and worker pins.
+- Socket.io job rooms for live offers and lifecycle updates.
+- Worker accept / counter / decline and customer accept / counter / reject flows.
+- Maximum three negotiation rounds with a visible timeline.
+
+### Phase 2 — trust and safety
+
+- Phone, ID and background verification levels on worker cards.
+- Transparent 0–100 trust score (verification, rating, completion and response time).
+- Star rating and review tags after completion.
+- SOS simulation, family trip share and arrival check-in controls.
+- Worker and customer live job lifecycle: Requested → Offers → Confirmed → On the way → In progress → Completed → Rated.
+
+### Product differentiators
+
+- Demo Mode floating switch between Customer and Worker views without logging out.
+- “Refresh nearby crew” action to make nearby availability visible immediately.
+- Worker-friendly large accept/decline cards and high-contrast mode.
+- English / हिन्दी / मराठी toggle on the main screens.
+- Voice onboarding using the Web Speech API where the browser supports it.
+- Worker earnings dashboard with lightweight CSS charts.
+- Low-bandwidth inbox note and no heavy image assets.
+- Read-only admin summary endpoint for future judge / jury walkthroughs.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  U[Customer or Worker on mobile browser] --> C[React + Vite client]
+  C -->|REST| A[Express API]
+  C <-->|Socket.io events| A
+  A --> D[(SQLite / better-sqlite3)]
+  C --> L[Leaflet + OpenStreetMap]
+  C --> V[Web Speech API]
+  A --> M[Matching + Haversine + Fair price + Trust score]
+```
+
+## Tech stack
+
+- Frontend: React, Vite, Tailwind CSS foundation with a custom mobile-first visual system.
+- Backend: Node.js, Express, Socket.io.
+- Database: SQLite via better-sqlite3; zero external database setup.
+- Maps: Leaflet with OpenStreetMap tiles; no API key.
+- Voice: browser Web Speech API.
+- Charts: Recharts with a lightweight CSS fallback aesthetic.
+
+## Setup in 3 steps
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Seed the local SQLite database (safe to run more than once)
+npm run seed
+
+# 3. Start the client and API together
+npm run dev
+```
+
+Open **http://localhost:5173**. The API runs on **http://localhost:4000**.
+
+Optional configuration is documented in `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+No real keys are required.
+
+## Demo credentials
+
+The OTP is generated on screen, so no SMS or credentials are needed.
+
+- Customer phone: `9000000000` (or any 10-digit number)
+- Worker demo phone: `9000000001` to load seeded Ramesh Patil, or any number for a mock worker shell
+- OTP: click **Send demo OTP** and enter the four digits displayed in the yellow demo hint
+
+## 2-minute demo script
+
+1. Open the landing page and select **EN** / **हिन्दी** / **मराठी** to show inclusion.
+2. Tap **I need a service**, enter any phone number, click **Send demo OTP**, enter the visible OTP.
+3. Tap **Simulate nearby workers**. Point out the map, verification badges, distances, ETAs and live availability.
+4. Tap **Start** under “What needs fixing?”, choose **Plumber**, leave “Leaking kitchen tap”, select **Now**, set `₹500` and submit.
+5. Show the live map and the negotiation room. In a second browser tab or by using the floating Demo Mode switch, open the worker view.
+6. In Worker view, press **Open & accept**. Switch back to Customer view and press **Confirm** on the incoming offer.
+7. Tap **On the way** to show the simulated journey, then **Start work**, **Complete**, and **Rate job**.
+8. Open the safety centre to show **Simulate SOS alert** and **Share trip with family**.
+9. Switch to Worker view and show earnings, trust score, large action buttons and voice onboarding.
+
+For a guaranteed demo, seed data starts around Mumbai (`19.0760, 72.8777`) and the location fallback uses the same point.
+
+## Important implementation notes
+
+- Matching is performed in `server/index.js`: Haversine distance filters by each worker's service radius, then sorts by 30-minute ETA, distance, rating and trust score.
+- Negotiation is persisted in SQLite and each worker/job pair is limited to three rounds.
+- Trust score is explained in `server/db.js` and is intentionally deterministic for judge-friendly transparency.
+- The app labels OTP, verification, SOS and simulated nearby workers as demo functionality.
+- The worker inbox includes a low-bandwidth note; a production version would use a service worker, local queue and SMS fallback.
+
+## Screenshot placeholders
+
+Add final hackathon screenshots here after recording the demo:
+
+- `[ ] Landing + language picker`
+- `[ ] Customer matching map`
+- `[ ] Negotiation room with fair price`
+- `[ ] Worker inbox + earnings`
+- `[ ] Safety centre`
+
+## Future scope
+
+- Production-grade ID / Aadhaar verification through an approved provider.
+- Background verification partners and insurance / accident cover.
+- UPI escrow, invoices, refunds and worker tax-ready earnings statements.
+- Offline-first PWA job inbox with conflict-safe sync.
+- Community ratings, dispute resolution and multilingual voice support for more Indian languages.
+- Organization / housing-society accounts and repeat service subscriptions.
